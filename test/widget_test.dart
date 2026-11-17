@@ -16,7 +16,7 @@ void main() {
   testWidgets('没有记录时首页显示空状态', (tester) async {
     final db = AppDatabase(NativeDatabase.memory());
     addTearDown(db.close);
-    final repo = DriftMealRepository(db, photoStore: _NoopPhotoStore());
+    final repo = DriftMealRepository(db, _NoopPhotoStore());
 
     await tester.pumpWidget(
       ProviderScope(

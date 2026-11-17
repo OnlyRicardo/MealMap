@@ -22,7 +22,7 @@ final photoStoreProvider = Provider<PhotoFileStore>((ref) => FilePhotoStore());
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
   return DriftMealRepository(
     ref.watch(databaseProvider),
-    photoStore: ref.watch(photoStoreProvider),
+    ref.watch(photoStoreProvider),
   );
 });
 

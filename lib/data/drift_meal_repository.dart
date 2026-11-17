@@ -13,12 +13,11 @@ const int kMaxTagLength = 12;
 
 class DriftMealRepository implements MealRepository {
   DriftMealRepository(
-    this._db, {
-    required PhotoFileStore photoStore,
+    this._db,
+    this._photoStore, {
     DateTime Function()? now,
     Uuid? uuid,
-  }) : _photoStore = photoStore,
-       _now = now ?? (() => DateTime.now()),
+  }) : _now = now ?? (() => DateTime.now()),
        _uuid = uuid ?? const Uuid();
 
   final AppDatabase _db;

@@ -14,7 +14,7 @@ v1 开发 · 数据层完成，正在打通构建与内置数据集。
 | M1 | 工具链（Flutter + Android SDK + 模拟器） | ✅ | 全部在 `~/.local/opt` 与 `~/Android/sdk`，无 sudo |
 | M2 | 项目骨架 + 依赖 + 阿里云 Maven 镜像 | ✅ | 包名 `dev.mealmap.app` |
 | M3 | 数据层（drift schema / 仓库 / 规则测试） | ✅ | 8 个测试全绿 |
-| M4 | 首次 APK 构建 | 🚧 | 正在下载 NDK r28c（插件需要） |
+| M4 | 首次 APK 构建 | ✅ | 首次构建耗时 1166s（下 Gradle/AGP/NDK/CMake）；之后增量约 1–2 分钟 |
 | M5 | 内置数据集（菜系 / 省市点位） | ✅ | 菜系 22 项；点位 3257 个（133KB），只含点不含边界（ADR-0003） |
 | M6 | 记一餐表单 + 照片管线 | ⬜ | |
 | M7 | 美食地图 | ⬜ | |
@@ -42,6 +42,9 @@ v1 开发 · 数据层完成，正在打通构建与内置数据集。
 - 机器 7GB 内存：Gradle 限 2 worker / 1.5GB 堆（`~/.local/opt/env.sh`），模拟器需保守配置。
 - 无 Android Studio：所有构建走 CLI；界面验证靠 `flutter test` golden + 模拟器截图。
 - 无 passwordless sudo：任何需要提权的操作必须交给用户执行。
+- **改包名要同步改 Kotlin 包声明**：把 `namespace`/`applicationId` 改成 `dev.mealmap.app` 后，`MainActivity.kt` 还在 `dev.mealmap.mealmap` 下，装到模拟器上直接 `ClassNotFoundException: Didn't find class "dev.mealmap.app.MainActivity"`。已把文件移到 `android/app/src/main/kotlin/dev/mealmap/app/`。
+- Flutter 3.50 起 `package:flutter/material.dart` 已标记 deprecated，应改用 `package:material_ui/material_ui.dart`（analyze 会报 info）。全项目已切换。
+- 模拟器验证命令：`emulator -avd mealmap -no-window -no-audio -gpu swiftshader_indirect &`，`adb exec-out screencap -p > shot.png`，崩溃堆栈看 `adb logcat -d -b crash`。
 
 ## 怎么继续
 

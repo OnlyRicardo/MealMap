@@ -24,7 +24,7 @@ void main() {
     files = _FakePhotoStore();
     repo = DriftMealRepository(
       db,
-      photoStore: files,
+      files,
       now: () => DateTime(2026, 11, 17, 20, 0),
     );
   });

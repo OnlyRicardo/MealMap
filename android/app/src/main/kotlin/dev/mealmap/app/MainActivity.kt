@@ -1,4 +1,4 @@
-package dev.mealmap.mealmap
+package dev.mealmap.app
 
 import io.flutter.embedding.android.FlutterActivity
 
