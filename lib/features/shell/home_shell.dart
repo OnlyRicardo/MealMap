@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../calendar/calendar_screen.dart';
 import '../map/map_screen.dart';
+import '../settings/settings_screen.dart';
 
 /// 应用外壳：底部两个 Tab，地图与日历。
 class HomeShell extends StatefulWidget {
@@ -19,7 +20,7 @@ class _HomeShellState extends State<HomeShell> {
     return Scaffold(
       body: IndexedStack(
         index: _index,
-        children: const [MapScreen(), CalendarScreen()],
+        children: const [MapScreen(), CalendarScreen(), SettingsScreen()],
       ),
       bottomNavigationBar: NavigationBar(
         selectedIndex: _index,
@@ -34,6 +35,11 @@ class _HomeShellState extends State<HomeShell> {
             icon: Icon(Icons.calendar_month_outlined),
             selectedIcon: Icon(Icons.calendar_month),
             label: '日历',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.settings_outlined),
+            selectedIcon: Icon(Icons.settings),
+            label: '设置',
           ),
         ],
       ),

@@ -10,4 +10,10 @@ abstract class PhotoFileStore {
 
   /// 照片私有目录的绝对路径；导入器把文件写到这里。
   Future<String> imagesDirPath();
+
+  /// 读取文件内容（导出用）；不存在返回 null。
+  Future<List<int>?> read(String fileName);
+
+  /// 写入文件（导入用）；已存在时覆盖。
+  Future<void> write(String fileName, List<int> bytes);
 }

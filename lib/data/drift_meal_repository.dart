@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../domain/bundle.dart';
 import '../../domain/meal_repository.dart';
 import '../../domain/models.dart';
 import '../../domain/photo_store.dart';
@@ -105,6 +106,12 @@ class DriftMealRepository implements MealRepository {
         .write(CuisinesCompanion(archivedAt: Value(_now())));
   }
 
+  @override
+  Future<void> restoreCuisine(String id) async {
+    await (_db.update(_db.cuisines)..where((row) => row.id.equals(id)))
+        .write(const CuisinesCompanion(archivedAt: Value(null)));
+  }
+
   Future<int> _maxCuisineOrder() async {
     final row = await (_db.selectOnly(_db.cuisines)
           ..addColumns([_db.cuisines.sortOrder.max()]))
@@ -139,6 +146,49 @@ class DriftMealRepository implements MealRepository {
           createdAt: _now(),
         ));
     return tag;
+  }
+
+  @override
+  Future<void> renameTag(String id, String name) async {
+    final trimmed = _normalizeTag(name);
+    final clash = await (_db.select(_db.tags)
+          ..where((row) =>
+              row.normalizedName.equals(trimmed.toLowerCase()) &
+              row.id.equals(id).not()))
+        .getSingleOrNull();
+    if (clash != null) {
+      throw CuisineNameConflictException('标签「$trimmed」已存在');
+    }
+    await (_db.update(_db.tags)..where((row) => row.id.equals(id))).write(
+      TagsCompanion(
+        name: Value(trimmed),
+        normalizedName: Value(trimmed.toLowerCase()),
+      ),
+    );
+  }
+
+  @override
+  Future<void> mergeTags(String fromId, String intoId) async {
+    if (fromId == intoId) return;
+    await _db.transaction(() async {
+      final links = await (_db.select(_db.mealTags)
+            ..where((row) => row.tagId.equals(fromId)))
+          .get();
+      for (final link in links) {
+        await _db.into(_db.mealTags).insert(
+              MealTagsCompanion.insert(mealId: link.mealId, tagId: intoId),
+              mode: InsertMode.insertOrIgnore,
+            );
+      }
+      await (_db.delete(_db.mealTags)..where((row) => row.tagId.equals(fromId)))
+          .go();
+      await (_db.delete(_db.tags)..where((row) => row.id.equals(fromId))).go();
+    });
+  }
+
+  @override
+  Future<void> deleteTag(String id) async {
+    await (_db.delete(_db.tags)..where((row) => row.id.equals(id))).go();
   }
 
   String _normalizeTag(String raw) {
@@ -351,6 +401,131 @@ class DriftMealRepository implements MealRepository {
         .whereType<int>()
         .where((year) => year > 0)
         .toList();
+  }
+
+  // ------------------------------------------------------------ export/import
+
+  @override
+  Future<MealBundle> exportBundle() async {
+    final cuisineRows = await _db.select(_db.cuisines).get();
+    final tagRows = await _db.select(_db.tags).get();
+    final mealRows = await (_db.select(_db.meals)
+          ..orderBy([
+            (row) => OrderingTerm.asc(row.eatenOn),
+            (row) => OrderingTerm.asc(row.createdAt),
+          ]))
+        .get();
+    return MealBundle(
+      formatVersion: MealBundle.currentFormatVersion,
+      cuisines: [
+        for (final row in cuisineRows)
+          BundleCuisine(
+            id: row.id,
+            name: row.name,
+            isBuiltin: row.isBuiltin,
+            sortOrder: row.sortOrder,
+            archivedAt: row.archivedAt,
+          ),
+      ],
+      tags: [for (final row in tagRows) Tag(id: row.id, name: row.name)],
+      meals: await Future.wait(mealRows.map(_hydrate)),
+    );
+  }
+
+  @override
+  Future<ImportSummary> importBundle(MealBundle bundle) async {
+    var imported = 0;
+    var skipped = 0;
+    await _db.transaction(() async {
+      for (final cuisine in bundle.cuisines) {
+        await _db.into(_db.cuisines).insert(
+              CuisinesCompanion.insert(
+                id: cuisine.id,
+                name: cuisine.name,
+                isBuiltin: Value(cuisine.isBuiltin),
+                sortOrder: Value(cuisine.sortOrder),
+                archivedAt: Value(cuisine.archivedAt),
+              ),
+              mode: InsertMode.insertOrIgnore,
+            );
+      }
+
+      final tagIdMap = <String, String>{};
+      for (final tag in bundle.tags) {
+        final normalized = tag.name.toLowerCase();
+        final existing = await (_db.select(_db.tags)
+              ..where((row) => row.normalizedName.equals(normalized)))
+            .getSingleOrNull();
+        if (existing != null) {
+          tagIdMap[tag.id] = existing.id;
+          continue;
+        }
+        final id = await (_db.select(_db.tags)
+              ..where((row) => row.id.equals(tag.id)))
+            .getSingleOrNull();
+        final newId = id == null ? tag.id : _uuid.v4();
+        await _db.into(_db.tags).insert(TagsCompanion.insert(
+              id: newId,
+              name: tag.name,
+              normalizedName: normalized,
+              createdAt: _now(),
+            ));
+        tagIdMap[tag.id] = newId;
+      }
+
+      for (final meal in bundle.meals) {
+        final clash = await (_db.select(_db.meals)
+              ..where((row) => row.id.equals(meal.id)))
+            .getSingleOrNull();
+        final cuisine = await (_db.select(_db.cuisines)
+              ..where((row) => row.id.equals(meal.cuisineId)))
+            .getSingleOrNull();
+        if (clash != null || cuisine == null) {
+          skipped++;
+          continue;
+        }
+
+        await _db.into(_db.meals).insert(MealsCompanion.insert(
+              id: meal.id,
+              eatenOn: dateKey(meal.eatenOn),
+              slot: Value(meal.slot?.name),
+              cityCode: meal.cityCode,
+              cuisineId: meal.cuisineId,
+              note: Value(meal.note),
+              createdAt: meal.createdAt,
+              updatedAt: meal.updatedAt,
+            ));
+        for (final dish in meal.dishes) {
+          await _db.into(_db.dishes).insert(DishesCompanion.insert(
+                id: dish.id,
+                mealId: meal.id,
+                name: dish.name,
+                position: dish.position,
+              ));
+        }
+        for (final photo in meal.photos) {
+          await _db.into(_db.photos).insert(PhotosCompanion.insert(
+                id: photo.id,
+                mealId: meal.id,
+                fileName: photo.fileName,
+                thumbName: photo.thumbName,
+                width: photo.width,
+                height: photo.height,
+                position: photo.position,
+              ));
+        }
+        for (final tag in meal.tags) {
+          final tagId = tagIdMap[tag.id];
+          if (tagId == null) continue;
+          await _db.into(_db.mealTags).insert(
+                MealTagsCompanion.insert(mealId: meal.id, tagId: tagId),
+                mode: InsertMode.insertOrIgnore,
+              );
+        }
+        imported++;
+      }
+    });
+    return ImportSummary(imported: imported, skipped: skipped);
   }
 
   // ----------------------------------------------------------------- helpers

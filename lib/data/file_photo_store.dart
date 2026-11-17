@@ -39,4 +39,18 @@ class FilePhotoStore implements PhotoFileStore {
 
   @override
   Future<String> imagesDirPath() async => (await imagesDir()).path;
+
+  @override
+  Future<List<int>?> read(String fileName) async {
+    final file = File(await pathOf(fileName));
+    if (!await file.exists()) return null;
+    return file.readAsBytes();
+  }
+
+  @override
+  Future<void> write(String fileName, List<int> bytes) async {
+    final file = File(await pathOf(fileName));
+    await file.parent.create(recursive: true);
+    await file.writeAsBytes(bytes, flush: true);
+  }
 }

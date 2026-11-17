@@ -20,6 +20,13 @@ class _NoopPhotoStore implements PhotoFileStore {
   @override
   Future<String> imagesDirPath() async => '/tmp';
 
+  @override
+  Future<List<int>?> read(String fileName) async => null;
+
+  @override
+  Future<void> write(String fileName, List<int> bytes) async {}
+
+
 }
 
 const _places = {

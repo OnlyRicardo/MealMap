@@ -20,6 +20,13 @@ class _FakePhotoStore implements PhotoFileStore {
   @override
   Future<String> imagesDirPath() async => '/tmp';
 
+  @override
+  Future<List<int>?> read(String fileName) async => null;
+
+  @override
+  Future<void> write(String fileName, List<int> bytes) async {}
+
+
 }
 
 void main() {
@@ -191,6 +198,52 @@ void main() {
     // 排序：内置的按 sortOrder，自定义的排在其后
     expect(all.first.id, 'sichuan');
     expect(all.last.id, custom.id);
+  });
+
+  test('标签可重命名，重名会被拒绝', () async {
+    final tag = await repo.upsertTag('火锅');
+    await repo.renameTag(tag.id, ' 麻辣火锅 ');
+    expect((await repo.listTags()).single.name, '麻辣火锅');
+
+    final other = await repo.upsertTag('聚餐');
+    expect(
+      () => repo.renameTag(other.id, '麻辣火锅'),
+      throwsA(isA<CuisineNameConflictException>()),
+    );
+  });
+
+  test('标签合并会转移引用并删除来源标签', () async {
+    final cuisine = await seedCuisine();
+    final from = await repo.upsertTag('火锅');
+    final into = await repo.upsertTag('聚餐');
+    final meal = await repo.saveMeal(MealDraft(
+      eatenOn: DateTime(2026, 11, 17),
+      cityCode: '510100',
+      cuisineId: cuisine.id,
+      tagNames: ['火锅', '聚餐'],
+    ));
+
+    await repo.mergeTags(from.id, into.id);
+
+    final tags = await repo.listTags();
+    expect(tags.map((t) => t.id), [into.id]);
+    expect((await repo.mealById(meal.id))!.tags.map((t) => t.name), ['聚餐']);
+  });
+
+  test('删除标签只解除关联，不删除 Meal', () async {
+    final cuisine = await seedCuisine();
+    final tag = await repo.upsertTag('火锅');
+    final meal = await repo.saveMeal(MealDraft(
+      eatenOn: DateTime(2026, 11, 17),
+      cityCode: '510100',
+      cuisineId: cuisine.id,
+      tagNames: ['火锅'],
+    ));
+
+    await repo.deleteTag(tag.id);
+
+    expect(await repo.listTags(), isEmpty);
+    expect((await repo.mealById(meal.id))!.tags, isEmpty);
   });
 
   test('按区间查询包含边界日期', () async {

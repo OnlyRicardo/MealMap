@@ -1,3 +1,4 @@
+import 'bundle.dart';
 import 'models.dart';
 
 /// 领域规则被违反时抛出，UI 负责翻译成用户可读的提示。
@@ -54,9 +55,15 @@ abstract class MealRepository {
   Future<Cuisine> addCuisine(String name);
   Future<void> renameCuisine(String id, String name);
   Future<void> archiveCuisine(String id);
+  Future<void> restoreCuisine(String id);
 
   Future<List<Tag>> listTags();
   Future<Tag> upsertTag(String name);
+  Future<void> renameTag(String id, String name);
+
+  /// 把 [fromId] 合并进 [intoId]：引用关系转移，然后删除 [fromId]。
+  Future<void> mergeTags(String fromId, String intoId);
+  Future<void> deleteTag(String id);
 
   Future<List<Meal>> mealsOn(DateTime date);
 
@@ -74,4 +81,10 @@ abstract class MealRepository {
 
   /// 有记录的年份，倒序。用于地图年份切换。
   Future<List<int>> yearsWithMeals();
+
+  /// 导出全部数据（不含照片二进制）。
+  Future<MealBundle> exportBundle();
+
+  /// 合并导入：ID 冲突的 Meal 会被跳过而不是覆盖。
+  Future<ImportSummary> importBundle(MealBundle bundle);
 }
