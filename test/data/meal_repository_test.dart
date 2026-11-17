@@ -13,6 +13,13 @@ class _FakePhotoStore implements PhotoFileStore {
 
   @override
   Future<void> delete(String fileName) async => deleted.add(fileName);
+
+  @override
+  Future<String> pathOf(String fileName) async => '/tmp/$fileName';
+
+  @override
+  Future<String> imagesDirPath() async => '/tmp';
+
 }
 
 void main() {

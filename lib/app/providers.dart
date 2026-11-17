@@ -6,9 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../data/db/database.dart';
 import '../data/drift_meal_repository.dart';
 import '../data/file_photo_store.dart';
+import '../data/image_photo_importer.dart';
 import '../data/geo/place_catalog.dart';
 import '../domain/meal_repository.dart';
 import '../domain/models.dart';
+import '../domain/photo_importer.dart';
 import '../domain/photo_store.dart';
 
 /// 单例数据库。UI 永不直接依赖 drift 的生成类型（见 ADR-0002）。
@@ -19,6 +21,10 @@ final databaseProvider = Provider<AppDatabase>((ref) {
 });
 
 final photoStoreProvider = Provider<PhotoFileStore>((ref) => FilePhotoStore());
+
+final photoImporterProvider = Provider<PhotoImporter>((ref) {
+  return ImagePhotoImporter(ref.watch(photoStoreProvider));
+});
 
 final mealRepositoryProvider = Provider<MealRepository>((ref) {
   return DriftMealRepository(

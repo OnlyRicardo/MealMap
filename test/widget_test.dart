@@ -11,6 +11,13 @@ import 'package:mealmap/domain/photo_store.dart';
 class _NoopPhotoStore implements PhotoFileStore {
   @override
   Future<void> delete(String fileName) async {}
+
+  @override
+  Future<String> pathOf(String fileName) async => '/tmp/$fileName';
+
+  @override
+  Future<String> imagesDirPath() async => '/tmp';
+
 }
 
 const _places = {

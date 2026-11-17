@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:image_picker/image_picker.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -39,6 +42,8 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
   String? _cuisineId;
   late List<String> _dishes;
   late List<String> _tags;
+  late List<PhotoDraft> _photos;
+  bool _importing = false;
   late final TextEditingController _noteController;
   late final TextEditingController _dishController;
   late final TextEditingController _tagController;
@@ -55,6 +60,17 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
     _cuisineId = meal?.cuisineId;
     _dishes = meal?.dishes.map((d) => d.name).toList() ?? [];
     _tags = meal?.tags.map((t) => t.name).toList() ?? [];
+    _photos = meal?.photos
+            .map((p) => PhotoDraft(
+                  id: p.id,
+                  fileName: p.fileName,
+                  thumbName: p.thumbName,
+                  width: p.width,
+                  height: p.height,
+                  position: p.position,
+                ))
+            .toList() ??
+        [];
     _noteController = TextEditingController(text: meal?.note ?? '');
     _dishController = TextEditingController();
     _tagController = TextEditingController();
@@ -94,6 +110,9 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
           const SizedBox(height: 20),
           _section('吃了什么'),
           _dishesSection(),
+          const SizedBox(height: 20),
+          _section('照片（最多 $kMaxPhotosPerMeal 张）'),
+          _photosSection(),
           const SizedBox(height: 20),
           _section('标签'),
           _tagsSection(),
@@ -287,6 +306,128 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
     );
   }
 
+  Widget _photosSection() {
+    return SizedBox(
+      height: 96,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          for (final photo in _photos) _photoThumb(photo),
+          if (_photos.length < kMaxPhotosPerMeal) _addPhotoTile(),
+        ],
+      ),
+    );
+  }
+
+  Widget _photoThumb(PhotoDraft photo) {
+    final store = ref.read(photoStoreProvider);
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: SizedBox(
+        width: 88,
+        height: 88,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            FutureBuilder<String>(
+              future: store.pathOf(photo.thumbName),
+              builder: (context, snapshot) {
+                final path = snapshot.data;
+                return ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: path == null
+                      ? const ColoredBox(color: Color(0x11000000))
+                      : Image.file(
+                          File(path),
+                          fit: BoxFit.cover,
+                          cacheWidth: 200,
+                          errorBuilder: (context, error, stack) => const Icon(
+                            Icons.broken_image_outlined,
+                          ),
+                        ),
+                );
+              },
+            ),
+            Positioned(
+              top: 2,
+              right: 2,
+              child: Material(
+                color: Colors.black54,
+                shape: const CircleBorder(),
+                child: InkWell(
+                  customBorder: const CircleBorder(),
+                  onTap: () => _removePhoto(photo),
+                  child: const Padding(
+                    padding: EdgeInsets.all(3),
+                    child: Icon(Icons.close, size: 16, color: Colors.white),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _addPhotoTile() {
+    return SizedBox(
+      width: 88,
+      height: 88,
+      child: OutlinedButton(
+        onPressed: _importing ? null : _pickPhotos,
+        style: OutlinedButton.styleFrom(padding: EdgeInsets.zero),
+        child: _importing
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : const Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.add_a_photo_outlined),
+                  SizedBox(height: 4),
+                  Text('添加', style: TextStyle(fontSize: 12)),
+                ],
+              ),
+      ),
+    );
+  }
+
+  Future<void> _pickPhotos() async {
+    final remaining = kMaxPhotosPerMeal - _photos.length;
+    if (remaining <= 0) {
+      _snack('一餐最多 $kMaxPhotosPerMeal 张照片');
+      return;
+    }
+    setState(() => _importing = true);
+    try {
+      final files = await ImagePicker().pickMultiImage(limit: remaining);
+      final importer = ref.read(photoImporterProvider);
+      for (final file in files.take(remaining)) {
+        final draft = await importer.importFrom(file.path, position: _photos.length);
+        if (!mounted) return;
+        setState(() => _photos.add(draft));
+      }
+    } catch (error) {
+      _snack('添加照片失败：$error');
+    } finally {
+      if (mounted) setState(() => _importing = false);
+    }
+  }
+
+  Future<void> _removePhoto(PhotoDraft photo) async {
+    // 还没保存过的新照片没有数据库记录，直接删文件，避免留下孤儿。
+    if (photo.id == null) {
+      final store = ref.read(photoStoreProvider);
+      await store.delete(photo.fileName);
+      await store.delete(photo.thumbName);
+    }
+    if (!mounted) return;
+    setState(() => _photos.removeWhere((item) => item.fileName == photo.fileName));
+  }
+
   void _addDish() {
     final name = _dishController.text.trim();
     if (name.isEmpty) return;
@@ -360,6 +501,7 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
                   ? null
                   : _noteController.text.trim(),
               dishes: _dishes,
+              photos: _photos,
               tagNames: _tags,
             ),
           );

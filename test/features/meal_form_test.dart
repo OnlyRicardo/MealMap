@@ -13,6 +13,13 @@ import 'package:mealmap/features/meal/meal_form_screen.dart';
 class _NoopPhotoStore implements PhotoFileStore {
   @override
   Future<void> delete(String fileName) async {}
+
+  @override
+  Future<String> pathOf(String fileName) async => '/tmp/$fileName';
+
+  @override
+  Future<String> imagesDirPath() async => '/tmp';
+
 }
 
 const _places = {
@@ -90,6 +97,51 @@ void main() {
 
     expect(find.text('请选择城市'), findsOneWidget);
     expect(await repo.mealsOn(DateTime.now()), isEmpty);
+  });
+
+  testWidgets('已有 9 张照片时不再提供添加入口', (tester) async {
+    final meal = Meal(
+      id: 'meal-1',
+      eatenOn: DateTime(2026, 11, 17),
+      cityCode: '5101',
+      cuisineId: 'sichuan',
+      createdAt: DateTime(2026, 11, 17),
+      updatedAt: DateTime(2026, 11, 17),
+      photos: [
+        for (var i = 0; i < 9; i++)
+          PhotoRef(
+            id: 'p$i',
+            fileName: 'f$i.jpg',
+            thumbName: 't$i.jpg',
+            width: 2048,
+            height: 1536,
+            position: i,
+          ),
+      ],
+    );
+
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          mealRepositoryProvider.overrideWithValue(repo),
+          placeCatalogProvider.overrideWith(
+            (ref) async => PlaceCatalog.fromJson(_places),
+          ),
+        ],
+        child: MaterialApp(home: MealFormScreen(meal: meal)),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.scrollUntilVisible(
+      find.text('照片（最多 9 张）'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('照片（最多 9 张）'), findsOneWidget);
+    expect(find.text('添加'), findsNothing);
   });
 
   testWidgets('标签长度与上限在表单层就被拦截', (tester) async {
