@@ -27,6 +27,7 @@
 - [工单拆解](docs/tickets/v1.md)
 - [术语表](GLOSSARY.md)
 - 架构决定：[0002 Flutter 与可替换数据层](docs/adr/0002-flutter-and-replaceable-data-layer.md) · [0003 城市点阵地图](docs/adr/0003-city-dot-map.md)
+- [发布签名](docs/signing.md)
 - [进度与踩坑记录](PROGRESS.md)
 
 ## 技术栈
@@ -43,6 +44,8 @@ flutter test                     # 31 个测试
 flutter run                      # 需要 Android SDK / 模拟器
 flutter build apk --release
 ```
+
+图标：`dart run tool/generate_icon.dart && dart run flutter_launcher_icons`（源图由脚本生成，改图标只需改脚本）。
 
 数据：`assets/data/places.json`，来源与许可见 [assets/data/NOTICE.md](assets/data/NOTICE.md)（AreaCity，MIT 声明，GCJ-02，只取名称/隶属/坐标）。
 

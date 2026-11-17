@@ -1,0 +1,7 @@
+# 复制成 android/key.properties 后填入自己的密码。不要提交这个文件。
+#
+# storeFile 路径相对于 android/app/，例：../keystore/mealmap.jks
+storePassword=你的密钥库密码
+keyPassword=你的密钥密码
+keyAlias=mealmap
+storeFile=../keystore/mealmap.jks
