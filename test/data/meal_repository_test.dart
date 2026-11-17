@@ -5,6 +5,7 @@ import 'package:mealmap/data/drift_meal_repository.dart';
 import 'package:mealmap/domain/meal_repository.dart';
 import 'package:mealmap/data/seed/cuisines.dart';
 import 'package:mealmap/domain/models.dart';
+import 'package:mealmap/domain/rules.dart';
 import 'package:mealmap/domain/photo_store.dart';
 
 class _FakePhotoStore implements PhotoFileStore {
@@ -214,6 +215,7 @@ void main() {
       {for (final c in thisYear) c.cityCode: c.count},
       {'510100': 1, '440300': 1},
     );
+    expect(await repo.yearsWithMeals(), [2026, 2025]);
     final cuisines = await repo.cuisineCounts(year: 2026);
     expect(
       {for (final c in cuisines) c.cuisineId: c.count},

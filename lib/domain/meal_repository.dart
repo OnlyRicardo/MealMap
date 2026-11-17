@@ -68,4 +68,7 @@ abstract class MealRepository {
 
   /// 按菜系聚合；[year] 为 null 表示全部年份。
   Future<List<CuisineCount>> cuisineCounts({int? year});
+
+  /// 有记录的年份，倒序。用于地图年份切换。
+  Future<List<int>> yearsWithMeals();
 }

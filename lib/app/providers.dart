@@ -8,6 +8,7 @@ import '../data/drift_meal_repository.dart';
 import '../data/file_photo_store.dart';
 import '../data/geo/place_catalog.dart';
 import '../domain/meal_repository.dart';
+import '../domain/models.dart';
 import '../domain/photo_store.dart';
 
 /// 单例数据库。UI 永不直接依赖 drift 的生成类型（见 ADR-0002）。
@@ -30,4 +31,9 @@ final mealRepositoryProvider = Provider<MealRepository>((ref) {
 final placeCatalogProvider = FutureProvider<PlaceCatalog>((ref) async {
   final raw = await rootBundle.loadString('assets/data/places.json');
   return PlaceCatalog.fromJson(jsonDecode(raw) as Map<String, dynamic>);
+});
+
+/// 可选菜系（不含归档项）。
+final cuisinesProvider = FutureProvider<List<Cuisine>>((ref) {
+  return ref.watch(mealRepositoryProvider).listCuisines();
 });

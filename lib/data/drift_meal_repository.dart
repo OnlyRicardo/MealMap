@@ -4,12 +4,8 @@ import 'package:uuid/uuid.dart';
 import '../../domain/meal_repository.dart';
 import '../../domain/models.dart';
 import '../../domain/photo_store.dart';
+import '../../domain/rules.dart';
 import 'db/database.dart';
-
-const int kMaxPhotosPerMeal = 9;
-const int kMaxTagsPerMeal = 10;
-const int kMinTagLength = 2;
-const int kMaxTagLength = 12;
 
 class DriftMealRepository implements MealRepository {
   DriftMealRepository(
@@ -183,6 +179,9 @@ class DriftMealRepository implements MealRepository {
     if (draft.tagNames.length > kMaxTagsPerMeal) {
       throw TagLimitException('一餐最多 $kMaxTagsPerMeal 个标签');
     }
+    if (draft.dishes.length > kMaxDishesPerMeal) {
+      throw MealMapException('一餐最多 $kMaxDishesPerMeal 道菜');
+    }
     if (draft.cityCode.trim().isEmpty) {
       throw const MealMapException('请选择城市');
     }
@@ -323,6 +322,20 @@ class DriftMealRepository implements MealRepository {
               cuisineId: row.read(_db.meals.cuisineId)!,
               count: row.read(count)!,
             ))
+        .toList();
+  }
+
+  @override
+  Future<List<int>> yearsWithMeals() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT DISTINCT substr(eaten_on, 1, 4) AS y FROM meals ORDER BY y DESC',
+        )
+        .get();
+    return rows
+        .map((row) => int.tryParse(row.read<String>('y')))
+        .whereType<int>()
+        .where((year) => year > 0)
         .toList();
   }
 
