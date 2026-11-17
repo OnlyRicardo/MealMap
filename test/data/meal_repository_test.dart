@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mealmap/data/db/database.dart';
 import 'package:mealmap/data/drift_meal_repository.dart';
 import 'package:mealmap/domain/meal_repository.dart';
+import 'package:mealmap/data/seed/cuisines.dart';
 import 'package:mealmap/domain/models.dart';
 import 'package:mealmap/domain/photo_store.dart';
 
@@ -165,6 +166,23 @@ void main() {
   test('菜系重名会被拒绝（忽略大小写）', () async {
     await seedCuisine('Ramen');
     expect(() => seedCuisine('ramen'), throwsA(isA<CuisineNameConflictException>()));
+  });
+
+  test('内置菜系种子幂等，且不影响已有自定义菜系', () async {
+    final custom = await repo.addCuisine('我妈做的菜');
+
+    final first = await repo.seedCuisines(builtinCuisines);
+    final second = await repo.seedCuisines(builtinCuisines);
+
+    expect(first, builtinCuisines.length);
+    expect(second, 0);
+    final all = await repo.listCuisines();
+    expect(all.length, builtinCuisines.length + 1);
+    expect(all.map((c) => c.id), contains(custom.id));
+    expect(all.where((c) => c.isBuiltin).length, builtinCuisines.length);
+    // 排序：内置的按 sortOrder，自定义的排在其后
+    expect(all.first.id, 'sichuan');
+    expect(all.last.id, custom.id);
   });
 
   test('城市与菜系聚合支持按年份筛选', () async {

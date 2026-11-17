@@ -40,6 +40,25 @@ class DriftMealRepository implements MealRepository {
   }
 
   @override
+  Future<int> seedCuisines(List<CuisineSeed> seeds) async {
+    var inserted = 0;
+    await _db.transaction(() async {
+      final existing = (await _db.select(_db.cuisines).get()).map((c) => c.id).toSet();
+      for (final seed in seeds) {
+        if (existing.contains(seed.id)) continue;
+        await _db.into(_db.cuisines).insert(CuisinesCompanion.insert(
+              id: seed.id,
+              name: seed.name,
+              isBuiltin: const Value(true),
+              sortOrder: Value(seed.sortOrder),
+            ));
+        inserted++;
+      }
+    });
+    return inserted;
+  }
+
+  @override
   Future<Cuisine> addCuisine(String name) async {
     final trimmed = name.trim();
     if (trimmed.isEmpty) {
@@ -52,11 +71,13 @@ class DriftMealRepository implements MealRepository {
       throw CuisineNameConflictException('菜系「$trimmed」已存在');
     }
     final maxOrder = await _maxCuisineOrder();
+    // 自定义菜系始终排在内置菜系（sortOrder ≤ 1000）之后。
+    final order = (maxOrder < 1000 ? 1000 : maxOrder) + 10;
     final row = Cuisine(
       id: _uuid.v4(),
       name: trimmed,
       isBuiltin: false,
-      sortOrder: maxOrder + 10,
+      sortOrder: order,
     );
     await _db.into(_db.cuisines).insert(CuisinesCompanion.insert(
           id: row.id,

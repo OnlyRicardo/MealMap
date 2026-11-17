@@ -43,6 +43,19 @@ class Tag {
   final String name;
 }
 
+/// 内置菜系的种子数据。ID 用稳定 slug，便于将来做国际化与云同步。
+class CuisineSeed {
+  const CuisineSeed({
+    required this.id,
+    required this.name,
+    required this.sortOrder,
+  });
+
+  final String id;
+  final String name;
+  final int sortOrder;
+}
+
 class Dish {
   const Dish({required this.id, required this.name, required this.position});
 

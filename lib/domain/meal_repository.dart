@@ -50,6 +50,7 @@ class CuisineCount {
 /// 只需要换实现，页面不用动（见 ADR-0002）。
 abstract class MealRepository {
   Future<List<Cuisine>> listCuisines({bool includeArchived = false});
+  Future<int> seedCuisines(List<CuisineSeed> seeds);
   Future<Cuisine> addCuisine(String name);
   Future<void> renameCuisine(String id, String name);
   Future<void> archiveCuisine(String id);
