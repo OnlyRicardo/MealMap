@@ -22,7 +22,7 @@ v1 开发 · 功能已全部打通（地图/日记/表单/照片/设置/备份�
 | M8 | 美食日历（T7） | ✅ | 月视图（色点/餐数/本月小结）+ 年热力图（只读） |
 | M9 | 详情 / 编辑 / 设置（T8/T9） | ✅ | 详情含照片横滑、编辑复用表单、删除二次确认；菜系与标签管理 |
 | M10 | 导出 / 导入（T10） | ✅ | data.json + photos/ + thumbs/ 的 zip；版本校验；冲突跳过；4 个测试 |
-| M11 | 发布前打磨（T11） | 🚧 | 主 manifest 无 INTERNET 权限；README + 4 张截图已补；待办：应用图标与中文名、孤儿照片清理 |
+| M11 | 发布前打磨（T11） | 🚧 | release APK 21.4MB（arm64），已确认无 INTERNET 权限；README + 4 张截图已补；待办：图标与中文名、签名、孤儿照片清理 |
 
 ## 提交记录
 
@@ -57,6 +57,8 @@ v1 开发 · 功能已全部打通（地图/日记/表单/照片/设置/备份�
 - 无 passwordless sudo：任何需要提权的操作必须交给用户执行。
 - **改包名要同步改 Kotlin 包声明**：把 `namespace`/`applicationId` 改成 `dev.mealmap.app` 后，`MainActivity.kt` 还在 `dev.mealmap.mealmap` 下，装到模拟器上直接 `ClassNotFoundException: Didn't find class "dev.mealmap.app.MainActivity"`。已把文件移到 `android/app/src/main/kotlin/dev/mealmap/app/`。
 - Flutter 3.50 起 `package:flutter/material.dart` 已标记 deprecated，应改用 `package:material_ui/material_ui.dart`（analyze 会报 info）。全项目已切换。
+- **release 构建曾因 AGP 9.3.1 的 lint 自身崩溃失败**（`NoSuchMethodError: JavaDocParser.parseDataItem`，在分析插件里的 `ExifDataCopier.java`）。已在 `android/app/build.gradle.kts` 关掉 `checkReleaseBuilds/abortOnError`，升级 AGP 后可以恢复。
+- release 包目前用 debug key 签名（`signingConfigs.getByName("debug")`），发版前必须换成自己的 keystore。
 - 模拟器偶发 `System UI isn't responding`（软件渲染 + 内存紧张），点 Wait 即可；`adb logcat -d -b crash` 看崩溃。
 - 模拟器验证命令：`emulator -avd mealmap -no-window -no-audio -gpu swiftshader_indirect &`，`adb exec-out screencap -p > shot.png`，崩溃堆栈看 `adb logcat -d -b crash`。
 

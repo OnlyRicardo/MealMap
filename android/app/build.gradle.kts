@@ -31,10 +31,18 @@ android {
 
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
+            // TODO: 发布前换成自己的签名（key.properties + keystore）。
+            // 现在用 debug key 签名，方便 `flutter run --release` 验证。
             signingConfig = signingConfigs.getByName("debug")
         }
+    }
+
+    lint {
+        // AGP 9.3.1 的 lint 在分析插件里的 Java 源码时自身崩溃
+        // （NoSuchMethodError: JavaDocParser.parseDataItem），与本项目代码无关。
+        // 先关掉 release 的 lint 检查，升级 AGP 后再打开。
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 }
 
