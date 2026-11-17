@@ -1,9 +1,12 @@
+import 'dart:convert';
 import 'package:drift_flutter/drift_flutter.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/db/database.dart';
 import '../data/drift_meal_repository.dart';
 import '../data/file_photo_store.dart';
+import '../data/geo/place_catalog.dart';
 import '../domain/meal_repository.dart';
 import '../domain/photo_store.dart';
 
@@ -21,4 +24,10 @@ final mealRepositoryProvider = Provider<MealRepository>((ref) {
     ref.watch(databaseProvider),
     photoStore: ref.watch(photoStoreProvider),
   );
+});
+
+/// 行政区点位目录（只含点，不含边界，见 ADR-0003）。
+final placeCatalogProvider = FutureProvider<PlaceCatalog>((ref) async {
+  final raw = await rootBundle.loadString('assets/data/places.json');
+  return PlaceCatalog.fromJson(jsonDecode(raw) as Map<String, dynamic>);
 });
