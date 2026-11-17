@@ -1,30 +1,33 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
+import 'package:drift/native.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
+import 'package:mealmap/app/app.dart';
+import 'package:mealmap/app/providers.dart';
+import 'package:mealmap/data/db/database.dart';
+import 'package:mealmap/data/drift_meal_repository.dart';
+import 'package:mealmap/domain/photo_store.dart';
 
-import 'package:mealmap/main.dart';
+class _NoopPhotoStore implements PhotoFileStore {
+  @override
+  Future<void> delete(String fileName) async {}
+}
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('没有记录时首页显示空状态', (tester) async {
+    final db = AppDatabase(NativeDatabase.memory());
+    addTearDown(db.close);
+    final repo = DriftMealRepository(db, photoStore: _NoopPhotoStore());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [mealRepositoryProvider.overrideWithValue(repo)],
+        child: const MealMapApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('美食地图'), findsOneWidget);
+    expect(find.textContaining('还没有记录'), findsOneWidget);
+    expect(find.text('记一餐'), findsOneWidget);
   });
 }
