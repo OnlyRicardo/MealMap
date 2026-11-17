@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../app/revision.dart';
 import '../../domain/meal_repository.dart';
 import '../../domain/models.dart';
 import '../../domain/rules.dart';
@@ -505,6 +506,7 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
               tagNames: _tags,
             ),
           );
+      ref.read(mealsRevisionProvider.notifier).bump();
       ref.invalidate(cuisinesProvider);
       if (!mounted) return;
       Navigator.of(context).pop(true);

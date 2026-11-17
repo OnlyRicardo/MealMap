@@ -193,6 +193,24 @@ void main() {
     expect(all.last.id, custom.id);
   });
 
+  test('按区间查询包含边界日期', () async {
+    final cuisine = await seedCuisine();
+    for (final day in [DateTime(2026, 10, 31), DateTime(2026, 11, 1), DateTime(2026, 11, 30), DateTime(2026, 12, 1)]) {
+      await repo.saveMeal(MealDraft(
+        eatenOn: day,
+        cityCode: '510100',
+        cuisineId: cuisine.id,
+      ));
+    }
+
+    final november = await repo.mealsBetween(DateTime(2026, 11, 1), DateTime(2026, 11, 30));
+    expect(november.map((m) => m.eatenOn),
+        [DateTime(2026, 11, 1), DateTime(2026, 11, 30)]);
+
+    final single = await repo.mealsBetween(DateTime(2026, 11, 30), DateTime(2026, 11, 30));
+    expect(single, hasLength(1));
+  });
+
   test('城市与菜系聚合支持按年份筛选', () async {
     final sichuan = await seedCuisine('川菜');
     final cantonese = await seedCuisine('粤菜');

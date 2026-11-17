@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app/providers.dart';
+import '../../app/revision.dart';
 import '../../data/geo/place_catalog.dart';
 import '../meal/meal_form_screen.dart';
 import 'city_dot_map.dart';
@@ -75,6 +76,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(mealsRevisionProvider, (_, _) => _refresh());
     final catalog = ref.watch(placeCatalogProvider);
 
     return Scaffold(
@@ -147,6 +149,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final selected = _selected;
     return Column(
       children: [
+        _legend(data),
         Expanded(
           child: Stack(
             children: [
@@ -172,14 +175,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
             ],
           ),
         ),
-        _legend(data),
         if (selected != null) _cityCard(selected, data),
       ],
     );
   }
 
   Widget _legend(_MapData data) {
-    if (data.total == 0) return const SizedBox(height: 8);
+    if (data.total == 0) return const SizedBox(height: 12);
     final maxCount =
         data.counts.values.fold<int>(0, (a, b) => a > b ? a : b);
     return Padding(

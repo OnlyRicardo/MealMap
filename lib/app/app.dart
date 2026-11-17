@@ -1,6 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
-import '../features/map/map_screen.dart';
+import '../features/shell/home_shell.dart';
 
 class MealMapApp extends StatelessWidget {
   const MealMapApp({super.key});
@@ -14,7 +14,7 @@ class MealMapApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFE8590C)),
         useMaterial3: true,
       ),
-      home: const MapScreen(),
+      home: const HomeShell(),
     );
   }
 }

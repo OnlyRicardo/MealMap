@@ -91,6 +91,7 @@ class CityDotMap extends StatefulWidget {
 class _CityDotMapState extends State<CityDotMap> {
   MapProjection? _projection;
   List<Place>? _districts;
+  List<double>? _districtRadii;
   List<Place>? _cities;
 
   @override
@@ -108,7 +109,36 @@ class _CityDotMapState extends State<CityDotMap> {
   void _prepare() {
     _projection = MapProjection(widget.catalog);
     _districts = widget.catalog.districts.toList(growable: false);
+    _districtRadii = _sizeByDensity(_districts!);
     _cities = widget.catalog.cities.toList(growable: false);
+  }
+
+  /// 西部区县面积大、点位稀疏，如果统一用小点，轮廓会散成一条星链。
+  /// 这里按「1.2° 网格内的邻居数量」给背景点分级：越稀疏画得越大，
+  /// 让整块国土的体量感出来；东部本来就很密，保持细小点。
+  static List<double> _sizeByDensity(List<Place> places) {
+    const cell = 1.2;
+    final counts = <String, int>{};
+    String key(int x, int y) => '$x:$y';
+    for (final place in places) {
+      final k = key((place.lng / cell).floor(), (place.lat / cell).floor());
+      counts[k] = (counts[k] ?? 0) + 1;
+    }
+    return [
+      for (final place in places)
+        () {
+          final cx = (place.lng / cell).floor();
+          final cy = (place.lat / cell).floor();
+          var around = 0;
+          for (var dx = -1; dx <= 1; dx++) {
+            for (var dy = -1; dy <= 1; dy++) {
+              around += counts[key(cx + dx, cy + dy)] ?? 0;
+            }
+          }
+          final density = (around / 40).clamp(0.0, 1.0);
+          return 1.7 + 2.1 * (1 - density);
+        }(),
+    ];
   }
 
   @override
@@ -133,6 +163,7 @@ class _CityDotMapState extends State<CityDotMap> {
               projection: projection,
               transform: transform,
               districts: districts,
+              districtRadii: _districtRadii!,
               cities: cities,
               counts: widget.counts,
               scheme: scheme,
@@ -163,6 +194,7 @@ class _DotMapPainter extends CustomPainter {
     required this.projection,
     required this.transform,
     required this.districts,
+    required this.districtRadii,
     required this.cities,
     required this.counts,
     required this.scheme,
@@ -171,6 +203,7 @@ class _DotMapPainter extends CustomPainter {
   final MapProjection projection;
   final ProjectionTransform transform;
   final List<Place> districts;
+  final List<double> districtRadii;
   final List<Place> cities;
   final Map<int, int> counts;
   final ColorScheme scheme;
@@ -183,22 +216,26 @@ class _DotMapPainter extends CustomPainter {
 
     // 背景：区县点，只用来勾勒形状，颜色刻意压得很淡。
     final background = Paint()
-      ..color = scheme.outlineVariant.withValues(alpha: 0.7)
+      ..color = scheme.onSurfaceVariant.withValues(alpha: 0.42)
       ..style = PaintingStyle.fill;
-    for (final district in districts) {
-      canvas.drawCircle(transform(projection.of(district)), 1.9, background);
+    for (var i = 0; i < districts.length; i++) {
+      canvas.drawCircle(
+        transform(projection.of(districts[i])),
+        districtRadii[i],
+        background,
+      );
     }
 
     // 城市点：没吃过的用轮廓色，吃过按数量放大加深。
     final visited = <int, int>{};
     final unvisited = Paint()
-      ..color = scheme.outline.withValues(alpha: 0.55)
+      ..color = scheme.onSurfaceVariant.withValues(alpha: 0.75)
       ..style = PaintingStyle.fill;
     for (final city in cities) {
       final offset = transform(projection.of(city));
       final count = counts[city.id] ?? 0;
       if (count <= 0) {
-        canvas.drawCircle(offset, 2.6, unvisited);
+        canvas.drawCircle(offset, 2.9, unvisited);
         continue;
       }
       visited[city.id] = count;
@@ -219,6 +256,7 @@ class _DotMapPainter extends CustomPainter {
     if (oldDelegate.transform.scale != transform.scale ||
         oldDelegate.transform.origin != transform.origin ||
         oldDelegate.projection != projection ||
+        oldDelegate.districtRadii != districtRadii ||
         oldDelegate.scheme != scheme) {
       return true;
     }

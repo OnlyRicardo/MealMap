@@ -59,6 +59,9 @@ abstract class MealRepository {
   Future<Tag> upsertTag(String name);
 
   Future<List<Meal>> mealsOn(DateTime date);
+
+  /// 闭区间 [from] 到 [to]（都只取日期部分），按日期、创建时间升序。
+  Future<List<Meal>> mealsBetween(DateTime from, DateTime to);
   Future<Meal?> mealById(String id);
   Future<Meal> saveMeal(MealDraft draft);
   Future<void> deleteMeal(String id);

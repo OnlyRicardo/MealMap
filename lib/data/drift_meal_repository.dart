@@ -163,6 +163,20 @@ class DriftMealRepository implements MealRepository {
   }
 
   @override
+  Future<List<Meal>> mealsBetween(DateTime from, DateTime to) async {
+    final rows = await (_db.select(_db.meals)
+          ..where((row) =>
+              row.eatenOn.isBiggerOrEqualValue(dateKey(from)) &
+              row.eatenOn.isSmallerOrEqualValue(dateKey(to)))
+          ..orderBy([
+            (row) => OrderingTerm.asc(row.eatenOn),
+            (row) => OrderingTerm.asc(row.createdAt),
+          ]))
+        .get();
+    return Future.wait(rows.map(_hydrate));
+  }
+
+  @override
   Future<Meal?> mealById(String id) async {
     final row = await (_db.select(_db.meals)..where((row) => row.id.equals(id)))
         .getSingleOrNull();
