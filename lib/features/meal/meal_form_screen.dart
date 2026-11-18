@@ -18,8 +18,7 @@ const _slotLabels = {
   MealSlot.snack: '加餐',
 };
 
-String formatDay(DateTime date) =>
-    '${date.year}年${date.month}月${date.day}日';
+String formatDay(DateTime date) => '${date.year}年${date.month}月${date.day}日';
 
 String _weekdayLabel(DateTime date) {
   const names = ['一', '二', '三', '四', '五', '六', '日'];
@@ -61,15 +60,18 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
     _cuisineId = meal?.cuisineId;
     _dishes = meal?.dishes.map((d) => d.name).toList() ?? [];
     _tags = meal?.tags.map((t) => t.name).toList() ?? [];
-    _photos = meal?.photos
-            .map((p) => PhotoDraft(
-                  id: p.id,
-                  fileName: p.fileName,
-                  thumbName: p.thumbName,
-                  width: p.width,
-                  height: p.height,
-                  position: p.position,
-                ))
+    _photos =
+        meal?.photos
+            .map(
+              (p) => PhotoDraft(
+                id: p.id,
+                fileName: p.fileName,
+                thumbName: p.thumbName,
+                width: p.width,
+                height: p.height,
+                position: p.position,
+              ),
+            )
             .toList() ??
         [];
     _noteController = TextEditingController(text: meal?.note ?? '');
@@ -91,9 +93,7 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
     final cityName = _cityId == null ? null : catalog?.byId(_cityId!)?.name;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.meal == null ? '记一餐' : '编辑这一餐'),
-      ),
+      appBar: AppBar(title: Text(widget.meal == null ? '记一餐' : '编辑这一餐')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
         children: [
@@ -150,9 +150,9 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
   }
 
   Widget _section(String title) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-      );
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+  );
 
   Widget _dateRow() {
     final today = dateOnly(DateTime.now());
@@ -189,9 +189,8 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
           ChoiceChip(
             label: Text(entry.value),
             selected: _slot == entry.key,
-            onSelected: (selected) => setState(
-              () => _slot = selected ? entry.key : null,
-            ),
+            onSelected: (selected) =>
+                setState(() => _slot = selected ? entry.key : null),
           ),
       ],
     );
@@ -231,9 +230,8 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
             ChoiceChip(
               label: Text(cuisine.name),
               selected: _cuisineId == cuisine.id,
-              onSelected: (selected) => setState(
-                () => _cuisineId = selected ? cuisine.id : null,
-              ),
+              onSelected: (selected) =>
+                  setState(() => _cuisineId = selected ? cuisine.id : null),
             ),
         ],
       ),
@@ -342,9 +340,8 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
                           File(path),
                           fit: BoxFit.cover,
                           cacheWidth: 200,
-                          errorBuilder: (context, error, stack) => const Icon(
-                            Icons.broken_image_outlined,
-                          ),
+                          errorBuilder: (context, error, stack) =>
+                              const Icon(Icons.broken_image_outlined),
                         ),
                 );
               },
@@ -407,7 +404,10 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
       final files = await ImagePicker().pickMultiImage(limit: remaining);
       final importer = ref.read(photoImporterProvider);
       for (final file in files.take(remaining)) {
-        final draft = await importer.importFrom(file.path, position: _photos.length);
+        final draft = await importer.importFrom(
+          file.path,
+          position: _photos.length,
+        );
         if (!mounted) return;
         setState(() => _photos.add(draft));
       }
@@ -426,7 +426,9 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
       await store.delete(photo.thumbName);
     }
     if (!mounted) return;
-    setState(() => _photos.removeWhere((item) => item.fileName == photo.fileName));
+    setState(
+      () => _photos.removeWhere((item) => item.fileName == photo.fileName),
+    );
   }
 
   void _addDish() {
@@ -491,7 +493,9 @@ class _MealFormScreenState extends ConsumerState<MealFormScreen> {
     }
     setState(() => _saving = true);
     try {
-      await ref.read(mealRepositoryProvider).saveMeal(
+      await ref
+          .read(mealRepositoryProvider)
+          .saveMeal(
             MealDraft(
               id: widget.meal?.id,
               eatenOn: _date,

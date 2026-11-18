@@ -65,11 +65,7 @@ img.Image _drawScene(int size) {
   img.fillCircle(scene, x: cx, y: 330, radius: 152, color: _white);
   img.fillPolygon(
     scene,
-    vertices: [
-      img.Point(512, 612),
-      img.Point(388, 332),
-      img.Point(636, 332),
-    ],
+    vertices: [img.Point(512, 612), img.Point(388, 332), img.Point(636, 332)],
     color: _white,
   );
   _clearCircle(scene, cx, 330, 64);
@@ -78,8 +74,16 @@ img.Image _drawScene(int size) {
 
 void _clearCircle(img.Image image, int cx, int cy, int radius) {
   final r2 = radius * radius;
-  for (var y = math.max(0, cy - radius); y <= math.min(image.height - 1, cy + radius); y++) {
-    for (var x = math.max(0, cx - radius); x <= math.min(image.width - 1, cx + radius); x++) {
+  for (
+    var y = math.max(0, cy - radius);
+    y <= math.min(image.height - 1, cy + radius);
+    y++
+  ) {
+    for (
+      var x = math.max(0, cx - radius);
+      x <= math.min(image.width - 1, cx + radius);
+      x++
+    ) {
       final dx = x - cx;
       final dy = y - cy;
       if (dx * dx + dy * dy <= r2) {
@@ -97,7 +101,9 @@ void _roundCorners(img.Image image, int radius) {
           : (x > image.width - radius - 1 ? x - (image.width - radius - 1) : 0);
       final dy = y < radius
           ? radius - y
-          : (y > image.height - radius - 1 ? y - (image.height - radius - 1) : 0);
+          : (y > image.height - radius - 1
+                ? y - (image.height - radius - 1)
+                : 0);
       if (dx > 0 && dy > 0 && dx * dx + dy * dy > radius * radius) {
         image.setPixelRgba(x, y, 0, 0, 0, 0);
       }

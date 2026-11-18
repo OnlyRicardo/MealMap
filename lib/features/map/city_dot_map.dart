@@ -47,8 +47,10 @@ class MapProjection {
       (size.width - padding.horizontal) / width,
       (size.height - padding.vertical) / height,
     );
-    final dx = padding.left + (size.width - padding.horizontal - width * scale) / 2;
-    final dy = padding.top + (size.height - padding.vertical - height * scale) / 2;
+    final dx =
+        padding.left + (size.width - padding.horizontal - width * scale) / 2;
+    final dy =
+        padding.top + (size.height - padding.vertical - height * scale) / 2;
     return ProjectionTransform(
       scale: scale,
       origin: Offset(dx - _minX * scale, dy - _minY * scale),
@@ -156,7 +158,8 @@ class _CityDotMapState extends State<CityDotMap> {
         final transform = projection.fit(size, const EdgeInsets.all(12));
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onTapUp: (details) => _handleTap(projection, transform, details.localPosition),
+          onTapUp: (details) =>
+              _handleTap(projection, transform, details.localPosition),
           child: CustomPaint(
             size: size,
             painter: _DotMapPainter(
@@ -174,7 +177,11 @@ class _CityDotMapState extends State<CityDotMap> {
     );
   }
 
-  void _handleTap(MapProjection projection, ProjectionTransform transform, Offset position) {
+  void _handleTap(
+    MapProjection projection,
+    ProjectionTransform transform,
+    Offset position,
+  ) {
     Place? nearest;
     var nearestDistance = 28.0;
     for (final city in _cities!) {
@@ -241,7 +248,11 @@ class _DotMapPainter extends CustomPainter {
       visited[city.id] = count;
       final ratio = maxCount <= 1 ? 1.0 : (count / maxCount).clamp(0.0, 1.0);
       final radius = 4.0 + 7.0 * math.sqrt(ratio);
-      final color = Color.lerp(scheme.primary.withValues(alpha: 0.75), scheme.primary, ratio)!;
+      final color = Color.lerp(
+        scheme.primary.withValues(alpha: 0.75),
+        scheme.primary,
+        ratio,
+      )!;
       canvas.drawCircle(
         offset,
         radius + 2.5,

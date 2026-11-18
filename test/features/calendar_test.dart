@@ -25,7 +25,6 @@ class _NoopPhotoStore implements PhotoFileStore {
 
   @override
   Future<void> write(String fileName, List<int> bytes) async {}
-
 }
 
 const _places = {
@@ -71,17 +70,17 @@ void main() {
   testWidgets('月视图显示当天餐数与菜系色点，点开可在弹层里进入详情', (tester) async {
     final now = DateTime.now();
     final today = dateOnly(now);
-    await repo.saveMeal(MealDraft(
-      eatenOn: today,
-      cityCode: '5101',
-      cuisineId: 'sichuan',
-      dishes: ['麻婆豆腐'],
-    ));
-    await repo.saveMeal(MealDraft(
-      eatenOn: today,
-      cityCode: '4403',
-      cuisineId: 'cantonese',
-    ));
+    await repo.saveMeal(
+      MealDraft(
+        eatenOn: today,
+        cityCode: '5101',
+        cuisineId: 'sichuan',
+        dishes: ['麻婆豆腐'],
+      ),
+    );
+    await repo.saveMeal(
+      MealDraft(eatenOn: today, cityCode: '4403', cuisineId: 'cantonese'),
+    );
 
     await pumpCalendar(tester);
 
@@ -99,11 +98,13 @@ void main() {
 
   testWidgets('年视图是只读热力图，点击格子不弹窗', (tester) async {
     final now = DateTime.now();
-    await repo.saveMeal(MealDraft(
-      eatenOn: DateTime(now.year, 1, 5),
-      cityCode: '5101',
-      cuisineId: 'sichuan',
-    ));
+    await repo.saveMeal(
+      MealDraft(
+        eatenOn: DateTime(now.year, 1, 5),
+        cityCode: '5101',
+        cuisineId: 'sichuan',
+      ),
+    );
 
     await pumpCalendar(tester);
 

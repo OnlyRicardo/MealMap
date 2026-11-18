@@ -17,9 +17,6 @@ Future<void> main() async {
   }
 
   runApp(
-    UncontrolledProviderScope(
-      container: container,
-      child: const MealMapApp(),
-    ),
+    UncontrolledProviderScope(container: container, child: const MealMapApp()),
   );
 }

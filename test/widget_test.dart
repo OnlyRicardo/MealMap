@@ -23,8 +23,6 @@ class _NoopPhotoStore implements PhotoFileStore {
 
   @override
   Future<void> write(String fileName, List<int> bytes) async {}
-
-
 }
 
 const _places = {

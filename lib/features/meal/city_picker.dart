@@ -107,10 +107,9 @@ class _CityPickerSheetState extends ConsumerState<_CityPickerSheet> {
 
   Widget _list(PlaceCatalog catalog, ScrollController controller) {
     if (_query.isNotEmpty) {
-      final matches = catalog.cities
-          .where((city) => city.name.contains(_query))
-          .toList()
-        ..sort((a, b) => a.name.compareTo(b.name));
+      final matches =
+          catalog.cities.where((city) => city.name.contains(_query)).toList()
+            ..sort((a, b) => a.name.compareTo(b.name));
       if (matches.isEmpty) {
         return const Center(child: Text('没有找到匹配的城市'));
       }

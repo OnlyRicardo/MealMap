@@ -40,14 +40,16 @@ class PlaceCatalog {
     }
     for (final item in raw) {
       if (item is! List || item.length < 6) continue;
-      places.add(Place(
-        id: item[0] as int,
-        parentId: item[1] as int,
-        level: item[2] as int,
-        name: item[3] as String,
-        lng: (item[4] as num).toDouble(),
-        lat: (item[5] as num).toDouble(),
-      ));
+      places.add(
+        Place(
+          id: item[0] as int,
+          parentId: item[1] as int,
+          level: item[2] as int,
+          name: item[3] as String,
+          lng: (item[4] as num).toDouble(),
+          lat: (item[5] as num).toDouble(),
+        ),
+      );
     }
     final byId = {for (final p in places) p.id: p};
     final byParent = <int, List<Place>>{};

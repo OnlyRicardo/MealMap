@@ -63,24 +63,26 @@ void main() {
   test('导出再导入到空库：数据、标签、照片都回来了', () async {
     store.files['p1.jpg'] = [1, 2, 3];
     store.files['t_p1.jpg'] = [4, 5];
-    final meal = await repo.saveMeal(MealDraft(
-      eatenOn: DateTime(2026, 5, 4),
-      slot: MealSlot.dinner,
-      cityCode: '510100',
-      cuisineId: 'sichuan',
-      note: '好吃',
-      dishes: ['麻婆豆腐'],
-      photos: [
-        const PhotoDraft(
-          fileName: 'p1.jpg',
-          thumbName: 't_p1.jpg',
-          width: 2048,
-          height: 1536,
-          position: 0,
-        ),
-      ],
-      tagNames: ['火锅'],
-    ));
+    final meal = await repo.saveMeal(
+      MealDraft(
+        eatenOn: DateTime(2026, 5, 4),
+        slot: MealSlot.dinner,
+        cityCode: '510100',
+        cuisineId: 'sichuan',
+        note: '好吃',
+        dishes: ['麻婆豆腐'],
+        photos: [
+          const PhotoDraft(
+            fileName: 'p1.jpg',
+            thumbName: 't_p1.jpg',
+            width: 2048,
+            height: 1536,
+            position: 0,
+          ),
+        ],
+        tagNames: ['火锅'],
+      ),
+    );
     final zipPath = await export();
 
     // 新设备：空库 + 空文件系统
@@ -111,38 +113,44 @@ void main() {
   });
 
   test('重复导入同一份备份时跳过而不是覆盖', () async {
-    await repo.saveMeal(MealDraft(
-      eatenOn: DateTime(2026, 5, 4),
-      cityCode: '510100',
-      cuisineId: 'sichuan',
-    ));
+    await repo.saveMeal(
+      MealDraft(
+        eatenOn: DateTime(2026, 5, 4),
+        cityCode: '510100',
+        cuisineId: 'sichuan',
+      ),
+    );
     final zipPath = await export();
 
     final first = await backup.importArchive(zipPath);
     expect(first.imported, 0);
     expect(first.skipped, 1);
 
-    expect((await repo.mealsBetween(DateTime(2026, 5, 4), DateTime(2026, 5, 4))), hasLength(1));
+    expect(
+      (await repo.mealsBetween(DateTime(2026, 5, 4), DateTime(2026, 5, 4))),
+      hasLength(1),
+    );
   });
 
   test('版本比当前新时拒绝导入且不写入任何数据', () async {
     final archive = Archive()
-      ..addFile(ArchiveFile.bytes(
-        'data.json',
-        utf8.encode(jsonEncode({
-          'formatVersion': MealBundle.currentFormatVersion + 1,
-          'cuisines': const [],
-          'tags': const [],
-          'meals': const [],
-        })),
-      ));
+      ..addFile(
+        ArchiveFile.bytes(
+          'data.json',
+          utf8.encode(
+            jsonEncode({
+              'formatVersion': MealBundle.currentFormatVersion + 1,
+              'cuisines': const [],
+              'tags': const [],
+              'meals': const [],
+            }),
+          ),
+        ),
+      );
     final path = '${temp.path}/future.zip';
     await File(path).writeAsBytes(ZipEncoder().encodeBytes(archive));
 
-    expect(
-      () => backup.importArchive(path),
-      throwsA(isA<MealMapException>()),
-    );
+    expect(() => backup.importArchive(path), throwsA(isA<MealMapException>()));
     expect(await repo.listCuisines(), hasLength(builtinCuisines.length));
   });
 

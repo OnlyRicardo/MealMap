@@ -1,5 +1,7 @@
 import 'dart:convert';
+
 import 'package:material_ui/material_ui.dart';
+
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -31,8 +33,10 @@ void main() {
 
   test('方位关系正确：北京在成都东北，三亚在哈尔滨以南', () {
     final projection = MapProjection(catalog);
-    final transform =
-        projection.fit(const Size(360, 300), const EdgeInsets.all(12));
+    final transform = projection.fit(
+      const Size(360, 300),
+      const EdgeInsets.all(12),
+    );
     final chengdu = catalog.byId(5101)!;
     final beijing = catalog.byId(11)!;
     final sanya = catalog.byId(4602)!;

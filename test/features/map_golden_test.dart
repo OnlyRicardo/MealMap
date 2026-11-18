@@ -1,3 +1,7 @@
+// golden 依赖具体平台的渲染，CI 上用 --exclude-tags golden 跳过。
+@Tags(['golden'])
+library;
+
 import 'dart:convert';
 import 'dart:io';
 

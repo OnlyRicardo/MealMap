@@ -49,11 +49,13 @@ class ProvinceAggregation {
     for (final entry in meals.entries) {
       final province = catalog.byId(entry.key);
       if (province == null) continue;
-      result.add(ProvinceAggregate(
-        province: province,
-        mealCount: entry.value,
-        cityCount: cities[entry.key]?.length ?? 0,
-      ));
+      result.add(
+        ProvinceAggregate(
+          province: province,
+          mealCount: entry.value,
+          cityCount: cities[entry.key]?.length ?? 0,
+        ),
+      );
     }
     result.sort((a, b) => b.mealCount.compareTo(a.mealCount));
     return ProvinceAggregation(result, unknownMeals: unknown);

@@ -8,7 +8,11 @@ import '../meal/meal_form_screen.dart';
 import 'city_dot_map.dart';
 
 class _MapData {
-  const _MapData({required this.counts, required this.years, required this.total});
+  const _MapData({
+    required this.counts,
+    required this.years,
+    required this.total,
+  });
 
   final Map<int, int> counts;
   final List<int> years;
@@ -66,9 +70,8 @@ class _MapScreenState extends ConsumerState<MapScreen> {
   }
 
   Future<void> _openForm() async {
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => const MealFormScreen()),
-    );
+    final saved = await Navigator.of(context)
+        .push<bool>(MaterialPageRoute(builder: (_) => const MealFormScreen()));
     if (saved == true && mounted) {
       _refresh();
     }
@@ -80,10 +83,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
     final catalog = ref.watch(placeCatalogProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('美食地图'),
-        actions: [_yearMenu()],
-      ),
+      appBar: AppBar(title: const Text('美食地图'), actions: [_yearMenu()]),
       body: FutureBuilder<_MapData>(
         future: _future,
         builder: (context, snapshot) {
@@ -182,8 +182,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   Widget _legend(_MapData data) {
     if (data.total == 0) return const SizedBox(height: 12);
-    final maxCount =
-        data.counts.values.fold<int>(0, (a, b) => a > b ? a : b);
+    final maxCount = data.counts.values.fold<int>(0, (a, b) => a > b ? a : b);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(

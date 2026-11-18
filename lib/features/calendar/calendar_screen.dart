@@ -119,7 +119,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           }
           final byDay = <int, List<Meal>>{};
           for (final meal in meals) {
-            final key = meal.eatenOn.year * 10000 +
+            final key =
+                meal.eatenOn.year * 10000 +
                 meal.eatenOn.month * 100 +
                 meal.eatenOn.day;
             byDay.putIfAbsent(key, () => []).add(meal);
@@ -182,7 +183,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
             return _dayCell(
               date,
               byDay[key] ?? const [],
-              isToday: date.year == today.year &&
+              isToday:
+                  date.year == today.year &&
                   date.month == today.month &&
                   date.day == today.day,
             );
@@ -223,10 +225,7 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
     if (meals.isEmpty) {
       return Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Text(
-          '这个月还没有记录',
-          style: Theme.of(context).textTheme.bodySmall,
-        ),
+        child: Text('这个月还没有记录', style: Theme.of(context).textTheme.bodySmall),
       );
     }
     final cities = meals.map((m) => m.cityCode).toSet().length;
@@ -287,8 +286,12 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
       child: Container(
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(10),
-          color: isToday ? scheme.primaryContainer.withValues(alpha: 0.55) : null,
-          border: isToday ? Border.all(color: scheme.primary, width: 1.2) : null,
+          color: isToday
+              ? scheme.primaryContainer.withValues(alpha: 0.55)
+              : null,
+          border: isToday
+              ? Border.all(color: scheme.primary, width: 1.2)
+              : null,
         ),
         padding: const EdgeInsets.all(4),
         child: Column(
@@ -296,9 +299,8 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
           children: [
             Text(
               '${date.day}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: isToday ? FontWeight.w700 : null,
-                  ),
+              style: Theme.of(context).textTheme.bodySmall
+                  ?.copyWith(fontWeight: isToday ? FontWeight.w700 : null),
             ),
             const Spacer(),
             Wrap(
@@ -356,8 +358,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
 
   Widget _yearHeatmap(Map<int, List<Meal>> byDay) {
     final scheme = Theme.of(context).colorScheme;
-    final maxCount = byDay.values
-        .fold<int>(0, (max, list) => list.length > max ? list.length : max);
+    final maxCount = byDay.values.fold<int>(
+      0,
+      (max, list) => list.length > max ? list.length : max,
+    );
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(12, 8, 12, 16),
@@ -406,8 +410,10 @@ class _CalendarScreenState extends ConsumerState<CalendarScreen> {
                 ),
               ),
             const SizedBox(width: 6),
-            Text('多（最多 $maxCount 餐/天）',
-                style: Theme.of(context).textTheme.bodySmall),
+            Text(
+              '多（最多 $maxCount 餐/天）',
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
           ],
         ),
       ],

@@ -55,7 +55,10 @@ class SettingsScreen extends ConsumerWidget {
                       itemBuilder: (context) => [
                         const PopupMenuItem(value: 'rename', child: Text('改名')),
                         if (cuisine.isArchived)
-                          const PopupMenuItem(value: 'restore', child: Text('恢复'))
+                          const PopupMenuItem(
+                            value: 'restore',
+                            child: Text('恢复'),
+                          )
                         else
                           const PopupMenuItem(
                             value: 'archive',
@@ -128,10 +131,7 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _cuisineSubtitle(Cuisine cuisine) {
-    final labels = [
-      if (cuisine.isBuiltin) '内置',
-      if (cuisine.isArchived) '已归档',
-    ];
+    final labels = [if (cuisine.isBuiltin) '内置', if (cuisine.isArchived) '已归档'];
     return labels.isEmpty ? '自定义' : labels.join(' · ');
   }
 
@@ -331,9 +331,7 @@ class SettingsScreen extends ConsumerWidget {
 
   Future<void> _export(BuildContext context, WidgetRef ref) async {
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(
-      const SnackBar(content: Text('正在打包备份…')),
-    );
+    messenger.showSnackBar(const SnackBar(content: Text('正在打包备份…')));
     try {
       await ref.read(backupServiceProvider).exportAndShare();
     } catch (error) {
@@ -377,9 +375,13 @@ class SettingsScreen extends ConsumerWidget {
       ref.invalidate(allCuisinesProvider);
       ref.invalidate(tagsProvider);
       ref.read(mealsRevisionProvider.notifier).bump();
-      messenger.showSnackBar(SnackBar(
-        content: Text('导入完成：新增 ${summary.imported} 餐，跳过 ${summary.skipped} 餐'),
-      ));
+      messenger.showSnackBar(
+        SnackBar(
+          content: Text(
+            '导入完成：新增 ${summary.imported} 餐，跳过 ${summary.skipped} 餐',
+          ),
+        ),
+      );
     } catch (error) {
       messenger.showSnackBar(SnackBar(content: Text('导入失败：$error')));
     }
@@ -390,7 +392,8 @@ class SettingsScreen extends ConsumerWidget {
       context: context,
       applicationName: 'MealMap',
       applicationVersion: '1.0.0 (v1)',
-      applicationLegalese: 'MIT License · 数据完全保存在本机\n'
+      applicationLegalese:
+          'MIT License · 数据完全保存在本机\n'
           '地图为城市点阵示意，不包含行政区域界线。',
     );
   }

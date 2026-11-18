@@ -21,7 +21,10 @@ class ImagePhotoImporter implements PhotoImporter {
   final Uuid _uuid;
 
   @override
-  Future<PhotoDraft> importFrom(String sourcePath, {required int position}) async {
+  Future<PhotoDraft> importFrom(
+    String sourcePath, {
+    required int position,
+  }) async {
     final dirPath = await _store.imagesDirPath();
     final id = _uuid.v4();
     final fileName = '$id.jpg';
@@ -30,7 +33,9 @@ class ImagePhotoImporter implements PhotoImporter {
     final source = File(sourcePath);
     final bytes = await source.readAsBytes();
     final decoded = await decodeImageFromList(bytes);
-    final longest = decoded.width > decoded.height ? decoded.width : decoded.height;
+    final longest = decoded.width > decoded.height
+        ? decoded.width
+        : decoded.height;
     final scale = longest > kPhotoMaxEdge ? kPhotoMaxEdge / longest : 1.0;
     final targetWidth = (decoded.width * scale).round();
     final targetHeight = (decoded.height * scale).round();

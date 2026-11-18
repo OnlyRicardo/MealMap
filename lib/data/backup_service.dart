@@ -26,10 +26,12 @@ class BackupService {
   Future<File> writeArchive({required String path}) async {
     final bundle = await _repository.exportBundle();
     final archive = Archive()
-      ..addFile(ArchiveFile.bytes(
-        dataEntry,
-        utf8.encode(jsonEncode(_bundleToJson(bundle))),
-      ));
+      ..addFile(
+        ArchiveFile.bytes(
+          dataEntry,
+          utf8.encode(jsonEncode(_bundleToJson(bundle))),
+        ),
+      );
 
     final seen = <String>{};
     for (final meal in bundle.meals) {
@@ -37,13 +39,17 @@ class BackupService {
         if (seen.add(photo.fileName)) {
           final bytes = await _photoStore.read(photo.fileName);
           if (bytes != null) {
-            archive.addFile(ArchiveFile.bytes('$photoPrefix${photo.fileName}', bytes));
+            archive.addFile(
+              ArchiveFile.bytes('$photoPrefix${photo.fileName}', bytes),
+            );
           }
         }
         if (seen.add(photo.thumbName)) {
           final bytes = await _photoStore.read(photo.thumbName);
           if (bytes != null) {
-            archive.addFile(ArchiveFile.bytes('$thumbPrefix${photo.thumbName}', bytes));
+            archive.addFile(
+              ArchiveFile.bytes('$thumbPrefix${photo.thumbName}', bytes),
+            );
           }
         }
       }
@@ -59,7 +65,8 @@ class BackupService {
   Future<void> exportAndShare() async {
     final dir = await getTemporaryDirectory();
     final stamp = DateTime.now();
-    final name = 'mealmap-${stamp.year}'
+    final name =
+        'mealmap-${stamp.year}'
         '${stamp.month.toString().padLeft(2, '0')}'
         '${stamp.day.toString().padLeft(2, '0')}-'
         '${stamp.hour.toString().padLeft(2, '0')}'
@@ -95,9 +102,7 @@ class BackupService {
 
     final version = json['formatVersion'];
     if (version is! int || version > MealBundle.currentFormatVersion) {
-      throw MealMapException(
-        '备份版本（$version）比当前 App 新，请先升级 App 再导入',
-      );
+      throw MealMapException('备份版本（$version）比当前 App 新，请先升级 App 再导入');
     }
     final bundle = _bundleFromJson(json);
 
@@ -225,7 +230,8 @@ class BackupService {
               ),
           ],
           tags: [
-            for (final id in (item['tagIds'] as List? ?? const []).cast<String>())
+            for (final id
+                in (item['tagIds'] as List? ?? const []).cast<String>())
               if (tagById[id] != null) tagById[id]!,
           ],
         ),

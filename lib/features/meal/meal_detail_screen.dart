@@ -82,8 +82,7 @@ class MealDetailScreen extends ConsumerWidget {
                 spacing: 8,
                 runSpacing: 8,
                 children: [
-                  for (final dish in meal.dishes)
-                    Chip(label: Text(dish.name)),
+                  for (final dish in meal.dishes) Chip(label: Text(dish.name)),
                 ],
               ),
             ),
@@ -99,8 +98,9 @@ class MealDetailScreen extends ConsumerWidget {
                   for (final tag in meal.tags)
                     Chip(
                       label: Text('#${tag.name}'),
-                      backgroundColor:
-                          Theme.of(context).colorScheme.secondaryContainer,
+                      backgroundColor: Theme.of(context)
+                          .colorScheme
+                          .secondaryContainer,
                     ),
                 ],
               ),
@@ -143,9 +143,9 @@ class MealDetailScreen extends ConsumerWidget {
   }
 
   Widget _sectionTitle(BuildContext context, String title) => Padding(
-        padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
-        child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-      );
+    padding: const EdgeInsets.fromLTRB(16, 20, 16, 8),
+    child: Text(title, style: Theme.of(context).textTheme.titleSmall),
+  );
 
   Widget _photoStrip(WidgetRef ref) {
     final store = ref.read(photoStoreProvider);
@@ -177,9 +177,9 @@ class MealDetailScreen extends ConsumerWidget {
   }
 
   Future<void> _edit(BuildContext context) async {
-    final saved = await Navigator.of(context).push<bool>(
-      MaterialPageRoute(builder: (_) => MealFormScreen(meal: meal)),
-    );
+    final saved = await Navigator.of(
+      context,
+    ).push<bool>(MaterialPageRoute(builder: (_) => MealFormScreen(meal: meal)));
     if (saved == true && context.mounted) {
       Navigator.of(context).pop(true);
     }
